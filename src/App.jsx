@@ -236,358 +236,364 @@ export default function App() {
       </aside>
 
       <main className="app-main" id="top">
-      <header className="app__header">
-        <div>
-          <p className="app__subtitle">
-            live bridge between spoken and signed conversation
-          </p>
-        </div>
-        <div className="app__header-right">
-          <span className={`status-pill ${anyChannelActive ? 'on' : ''}`}>
-            <span className="dot" /> {anyChannelActive ? 'Session active' : 'Standing by'}
-          </span>
-          <p className="app__subtitle">
-            {sign.knownLabels.length} sign{sign.knownLabels.length === 1 ? '' : 's'} taught
-          </p>
-        </div>
-      </header>
-
-      {settingsOpen && (
-        <div className="settings-panel">
-          <div className="settings-row">
-            <label htmlFor="lang-select">🌍 Speech language</label>
-            <select
-              id="lang-select"
-              value={lang}
-              onChange={(e) => setLang(e.target.value)}
-              disabled={voice.listening}
-            >
-              <option value="en-US">English (US)</option>
-              <option value="en-GB">English (UK)</option>
-              <option value="hi-IN">Hindi</option>
-              <option value="es-ES">Spanish</option>
-              <option value="fr-FR">French</option>
-              <option value="de-DE">German</option>
-              <option value="ja-JP">Japanese</option>
-            </select>
-            {voice.listening && <span className="status-note">stop listening to change</span>}
-          </div>
-
-          <div className="settings-row">
-            <label htmlFor="camera-select">📷 Camera</label>
-            <select
-              id="camera-select"
-              value={selectedCamera}
-              onChange={(e) => setSelectedCamera(e.target.value)}
-              disabled={sign.running}
-            >
-              <option value="">Default camera</option>
-              {(sign.cameras || []).map((cam, i) => (
-                <option key={cam.deviceId} value={cam.deviceId}>
-                  {cam.label || `Camera ${i + 1}`}
-                </option>
-              ))}
-            </select>
-            {(sign.cameras || []).length === 0 && (
-              <span className="status-note">start camera once to list devices</span>
-            )}
-          </div>
-
-          <div className="settings-row">
-            <label htmlFor="mute-toggle">🔊 Speak recognized signs aloud</label>
-            <button
-              id="mute-toggle"
-              className={muted ? '' : 'active-toggle'}
-              onClick={() => setMuted((v) => !v)}
-            >
-              {muted ? 'Muted' : 'On'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="channels">
-        {/* VOICE CHANNEL — speech in, captions out */}
-        <div className="channel channel--voice">
-          <div className="channel__label">
-            <span className="swatch" /> spoken
-          </div>
-
-          <div className="status-row">
-            <span className={`status-pill ${voice.listening ? 'on' : ''}`}>
-              <span className="dot" /> {voice.listening ? 'Listening' : 'Idle'}
-            </span>
-          </div>
-
-          <div className="mic-orb">
-            {!voice.listening && (
-              <div className="mic-orb__placeholder">
-                <MicIcon />
-                <span>Click "Start listening" to begin</span>
-                <ul className="mic-orb__tips">
-                  <li>Speak clearly at a normal pace</li>
-                  <li>Minimize background noise</li>
-                  <li>Works best in Chrome or Edge</li>
-                </ul>
-              </div>
-            )}
-            {Array.from({ length: 9 }).map((_, i) => {
-              // middle bars react more than the edges, for a natural waveform shape
-              const weight = 1 - Math.abs(i - 4) / 4.5
-              const baseHeight = 6
-              const activeHeight = voice.listening
-                ? baseHeight + voice.audioLevel * 60 * weight + Math.random() * 4 * weight
-                : baseHeight
-              return (
-                <div
-                  key={i}
-                  className="mic-orb__bar"
-                  style={{ height: `${Math.max(baseHeight, activeHeight)}px` }}
-                />
-              )
-            })}
-          </div>
-
-          <div className="controls">
-            {!voice.listening ? (
-              <button
-                className="primary--voice"
-                onClick={voice.start}
-                disabled={!voice.supported}
-              >
-                <MicIcon /> Start listening
-              </button>
-            ) : (
-              <button onClick={voice.stop}>
-                <MicIcon /> Stop listening
-              </button>
-            )}
-          </div>
-
-          {!voice.supported && (
-            <p className="status-note">
-              Speech recognition isn't supported in this browser — try Chrome or Edge.
+        <header className="app__header">
+          <div>
+            <p className="app__subtitle">
+              live bridge between spoken and signed conversation
             </p>
-          )}
-          {voice.interimText && (
-            <p className="status-note">hearing: "{voice.interimText}"</p>
-          )}
-        </div>
-
-        {/* SIGN CHANNEL — camera in, gloss out */}
-        <div className="channel channel--sign">
-          <div className="channel__label">
-            <span className="swatch" /> signed
           </div>
-
-          <div className="status-row">
-            <span className={`status-pill ${sign.modelReady ? 'on' : ''}`}>
-              <span className="dot" /> {sign.loading ? 'Processing…' : sign.modelReady ? 'AI Ready' : 'AI not loaded'}
+          <div className="app__header-right">
+            <span className={`status-pill ${anyChannelActive ? 'on' : ''}`}>
+              <span className="dot" /> {anyChannelActive ? 'Session active' : 'Standing by'}
             </span>
-            <span className={`status-pill ${sign.running ? 'on' : ''}`}>
-              <span className="dot" /> {sign.running ? 'Camera active' : 'Camera off'}
-            </span>
-            <span className={`status-pill ${sign.handVisible ? 'on' : ''}`}>
-              <span className="dot" /> {sign.handVisible ? 'Gesture detected' : 'No hand'}
-            </span>
-            {sign.running && <span className="status-pill">{sign.fps} FPS</span>}
+            <p className="app__subtitle">
+              {sign.knownLabels.length} sign{sign.knownLabels.length === 1 ? '' : 's'} taught
+            </p>
           </div>
+        </header>
 
-          <div className={`video-frame ${sign.justDetected ? 'video-frame--pulse' : ''}`}>
-            {!sign.running && !sign.loading && (
-              <div className="video-frame__placeholder">
-                <CameraIcon />
-                <span>Click "Start camera" to begin</span>
-              </div>
-            )}
-            {sign.loading && (
-              <div className="video-frame__placeholder">
-                <div className="spinner" />
-                <span>Loading gesture model…</span>
-              </div>
-            )}
-            <video ref={sign.videoRef} autoPlay playsInline muted />
-            <canvas ref={sign.canvasRef} width={480} height={360} />
-          </div>
+        {settingsOpen && (
+          <div className="settings-panel">
+            <div className="settings-row">
+              <label htmlFor="lang-select">🌍 Speech language</label>
+              <select
+                id="lang-select"
+                value={lang}
+                onChange={(e) => setLang(e.target.value)}
+                disabled={voice.listening}
+              >
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="es-ES">Spanish</option>
+                <option value="fr-FR">French</option>
+                <option value="de-DE">German</option>
+                <option value="ja-JP">Japanese</option>
+              </select>
+              {voice.listening && <span className="status-note">stop listening to change</span>}
+            </div>
 
-          <div className={`current-sign-card ${sign.activeMatch ? 'current-sign-card--active' : ''}`}>
-            {sign.activeMatch ? (
-              <>
-                <span className="current-sign-card__label">Current Sign</span>
-                <span className="current-sign-card__value">{sign.activeMatch.label}</span>
-                <span className="current-sign-card__confidence">
-                  {sign.activeMatch.confidence}% confidence · {sign.activeMatch.source}
-                </span>
-              </>
-            ) : (
-              <span className="current-sign-card__label">No sign currently detected</span>
-            )}
-          </div>
+            <div className="settings-row">
+              <label htmlFor="camera-select">📷 Camera</label>
+              <select
+                id="camera-select"
+                value={selectedCamera}
+                onChange={(e) => setSelectedCamera(e.target.value)}
+                disabled={sign.running}
+              >
+                <option value="">Default camera</option>
+                {(sign.cameras || []).map((cam, i) => (
+                  <option key={cam.deviceId} value={cam.deviceId}>
+                    {cam.label || `Camera ${i + 1}`}
+                  </option>
+                ))}
+              </select>
+              {(sign.cameras || []).length === 0 && (
+                <span className="status-note">start camera once to list devices</span>
+              )}
+            </div>
 
-          <div className="controls">
-            {!sign.running ? (
-              <button className="primary--sign" onClick={() => sign.start(selectedCamera)} disabled={sign.loading}>
-                <CameraIcon /> {sign.loading ? 'Loading model…' : 'Start camera'}
+            <div className="settings-row">
+              <label htmlFor="mute-toggle">🔊 Speak recognized signs aloud</label>
+              <button
+                id="mute-toggle"
+                className={muted ? '' : 'active-toggle'}
+                onClick={() => setMuted((v) => !v)}
+              >
+                {muted ? 'Muted' : 'On'}
               </button>
-            ) : (
-              <button onClick={sign.stop}>
-                <CameraIcon /> Stop camera
-              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="channels">
+          {/* VOICE CHANNEL — speech in, captions out */}
+          <div className="channel channel--voice">
+            <div className="channel__label">
+              <span className="swatch" /> spoken
+            </div>
+
+            <div className="status-row">
+              <span className={`status-pill ${voice.listening ? 'on' : ''}`}>
+                <span className="dot" /> {voice.listening ? 'Listening' : 'Idle'}
+              </span>
+            </div>
+
+            <div className="mic-orb">
+              {!voice.listening && (
+                <div className="mic-orb__placeholder">
+                  <MicIcon />
+                  <span>Click "Start listening" to begin</span>
+                  <ul className="mic-orb__tips">
+                    <li>Speak clearly at a normal pace</li>
+                    <li>Minimize background noise</li>
+                    <li>Works best in Chrome or Edge</li>
+                  </ul>
+                </div>
+              )}
+              {Array.from({ length: 9 }).map((_, i) => {
+                // middle bars react more than the edges, for a natural waveform shape
+                const weight = 1 - Math.abs(i - 4) / 4.5
+                const baseHeight = 6
+                const activeHeight = voice.listening
+                  ? baseHeight + voice.audioLevel * 60 * weight + Math.random() * 4 * weight
+                  : baseHeight
+                return (
+                  <div
+                    key={i}
+                    className="mic-orb__bar"
+                    style={{ height: `${Math.max(baseHeight, activeHeight)}px` }}
+                  />
+                )
+              })}
+            </div>
+
+            <div className="controls">
+              {!voice.listening ? (
+                <button
+                  className="primary--voice"
+                  onClick={voice.start}
+                  disabled={!voice.supported}
+                >
+                  <MicIcon /> Start listening
+                </button>
+              ) : (
+                <button onClick={voice.stop}>
+                  <MicIcon /> Stop listening
+                </button>
+              )}
+            </div>
+
+            {!voice.supported && (
+              <p className="status-note">
+                Speech recognition isn't supported in this browser — try Chrome or Edge.
+              </p>
+            )}
+            {voice.interimText && (
+              <p className="status-note">hearing: "{voice.interimText}"</p>
             )}
           </div>
 
-          <p className="status-note">
-            {sign.running
-              ? sign.handVisible
-                ? 'hold a pose steady to match it'
-                : 'show a hand to the camera'
-              : 'camera is off'}
-          </p>
+          {/* SIGN CHANNEL — camera in, gloss out */}
+          <div className="channel channel--sign">
+            <div className="channel__label">
+              <span className="swatch" /> signed
+            </div>
 
-          {sign.error && <p className="status-note status-note--error">{sign.error}</p>}
+            <div className="status-row">
+              <span className={`status-pill ${sign.modelReady ? 'on' : ''}`}>
+                <span className="dot" /> {sign.loading ? 'Processing…' : sign.modelReady ? 'AI Ready' : 'AI not loaded'}
+              </span>
+              <span className={`status-pill ${sign.running ? 'on' : ''}`}>
+                <span className="dot" /> {sign.running ? 'Camera active' : 'Camera off'}
+              </span>
+              <span className={`status-pill ${sign.handVisible ? 'on' : ''}`}>
+                <span className="dot" /> {sign.handVisible ? 'Gesture detected' : 'No hand'}
+              </span>
+              {sign.running && <span className="status-pill">{sign.fps} FPS</span>}
+            </div>
 
-          <p className="status-note">
-            Built in, no teaching needed: {sign.builtinGestures.join(' · ')}
-          </p>
+            <div className={`video-frame ${sign.justDetected ? 'video-frame--pulse' : ''}`}>
+              {!sign.running && !sign.loading && (
+                <div className="video-frame__placeholder">
+                  <CameraIcon />
+                  <span>Click "Start camera" to begin</span>
+                </div>
+              )}
+              {sign.loading && (
+                <div className="video-frame__placeholder">
+                  <div className="spinner" />
+                  <span>Loading gesture model…</span>
+                </div>
+              )}
+              <video ref={sign.videoRef} autoPlay playsInline muted />
+              <canvas ref={sign.canvasRef} width={480} height={360} />
+            </div>
 
-          {/* Teach-a-sign flow: hold a pose, name it, and it's added to the
+            <div className={`current-sign-card ${sign.activeMatch ? 'current-sign-card--active' : ''}`}>
+              {sign.activeMatch ? (
+                <>
+                  <span className="current-sign-card__label">Current Sign</span>
+                  <span className="current-sign-card__value">{sign.activeMatch.label}</span>
+                  <span className="current-sign-card__confidence">
+                    {sign.activeMatch.confidence}% confidence · {sign.activeMatch.source}
+                  </span>
+                </>
+              ) : (
+                <span className="current-sign-card__label">No sign currently detected</span>
+              )}
+            </div>
+
+            <div className="controls">
+              {!sign.running ? (
+                <button className="primary--sign" onClick={() => sign.start(selectedCamera)} disabled={sign.loading}>
+                  <CameraIcon /> {sign.loading ? 'Loading model…' : 'Start camera'}
+                </button>
+              ) : (
+                <button onClick={sign.stop}>
+                  <CameraIcon /> Stop camera
+                </button>
+              )}
+            </div>
+
+            <p className="status-note">
+              {sign.running
+                ? sign.handVisible
+                  ? 'hold a pose steady to match it'
+                  : 'show a hand to the camera'
+                : 'camera is off'}
+            </p>
+
+            {sign.error && <p className="status-note status-note--error">{sign.error}</p>}
+
+            <p className="status-note">
+              Built in, no teaching needed: {sign.builtinGestures.join(' · ')}
+            </p>
+
+            {/* Teach-a-sign flow: hold a pose, name it, and it's added to the
               vocabulary immediately — this is how you build up the demo's
               recognized sign set during the hackathon itself. */}
-          <div className="controls">
-            <input
-              type="text"
-              placeholder="name this pose (e.g. hello)"
-              value={teachLabel}
-              onChange={(e) => setTeachLabel(e.target.value)}
-              className="teach-input"
-            />
-            <button
-              onClick={() => {
-                const ok = sign.teachSign(teachLabel)
-                if (ok) setTeachLabel('')
-              }}
-              disabled={!sign.handVisible || !teachLabel.trim()}
-            >
-              <HandIcon /> Teach this pose
-            </button>
-          </div>
-
-          {sign.knownLabels.length > 0 && (
-            <>
-              <div className="gloss-tray">
-                {sign.knownLabels.map((label) => (
-                  <button
-                    className="gloss-chip"
-                    key={label}
-                    onClick={() => sign.removeSign(label)}
-                    title="Click to remove — hold the pose again and re-teach it"
-                  >
-                    {label} <span className="gloss-chip__x">×</span>
-                  </button>
-                ))}
-              </div>
-              <button className="clear-all-btn" onClick={sign.clearVocabulary}>
-                Clear all taught poses
+            <div className="controls">
+              <input
+                type="text"
+                placeholder="name this pose (e.g. hello)"
+                value={teachLabel}
+                onChange={(e) => setTeachLabel(e.target.value)}
+                className="teach-input"
+              />
+              <button
+                onClick={() => {
+                  const ok = sign.teachSign(teachLabel)
+                  if (ok) setTeachLabel('')
+                }}
+                disabled={!sign.handVisible || !teachLabel.trim()}
+              >
+                <HandIcon /> Teach this pose
               </button>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
 
-      <div className="stats-bar">
-        <div className="stat">
-          <span className="stat__value">{elapsedSec > 0 ? formatDuration(elapsedSec) : '0:00'}</span>
-          <span className="stat__label">Session time</span>
+            {sign.knownLabels.length > 0 && (
+              <>
+                <div className="gloss-tray">
+                  {sign.knownLabels.map((label) => (
+                    <button
+                      className="gloss-chip"
+                      key={label}
+                      onClick={() => sign.removeSign(label)}
+                      title="Click to remove — hold the pose again and re-teach it"
+                    >
+                      {label} <span className="gloss-chip__x">×</span>
+                    </button>
+                  ))}
+                </div>
+                <button className="clear-all-btn" onClick={sign.clearVocabulary}>
+                  Clear all taught poses
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        <div className="stat">
-          <span className="stat__value">{wordCount}</span>
-          <span className="stat__label">Words captured</span>
-        </div>
-        <div className="stat">
-          <span className="stat__value">{signCount}</span>
-          <span className="stat__label">Signs recognized</span>
-        </div>
-        <div className="stat">
-          <span className="stat__value">{avgFps || '—'}</span>
-          <span className="stat__label">Average FPS</span>
-        </div>
-      </div>
 
-      {history.length > 0 && (
+        <div className="stats-bar">
+          <div className="stat">
+            <span className="stat__value">{elapsedSec > 0 ? formatDuration(elapsedSec) : '0:00'}</span>
+            <span className="stat__label">Session time</span>
+          </div>
+          <div className="stat">
+            <span className="stat__value">{wordCount}</span>
+            <span className="stat__label">Words captured</span>
+          </div>
+          <div className="stat">
+            <span className="stat__value">{signCount}</span>
+            <span className="stat__label">Signs recognized</span>
+          </div>
+          <div className="stat">
+            <span className="stat__value">{avgFps || '—'}</span>
+            <span className="stat__label">Average FPS</span>
+          </div>
+        </div>
+
         <div className="history-panel" id="history">
           <div className="history-panel__header">
             <span className="transcript__label">recent sessions</span>
-            <button className="transcript__clear" onClick={clearHistory}>Clear history</button>
-          </div>
-          <div className="history-list">
-            {history.map((h) => (
-              <div className="history-item" key={h.id}>
-                <span className="history-item__date">{h.date}</span>
-                <span className="history-item__stats">
-                  {h.wordCount} words · {h.signCount} signs · {formatDuration(h.durationSeconds)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="transcript" id="transcript">
-        <div className="transcript__header">
-          <div className="transcript__label">shared transcript</div>
-          <div className="transcript__actions">
-            {transcript.length > 0 && (
-              <>
-                <button className="transcript__clear" onClick={copyTranscript}>
-                  Copy
-                </button>
-                <button className="transcript__clear" onClick={downloadTranscript}>
-                  Export .txt
-                </button>
-                <button className="transcript__clear" onClick={downloadTranscriptJSON}>
-                  Export .json
-                </button>
-                <button className="transcript__clear" onClick={saveSession}>
-                  Save session
-                </button>
-                <button className="transcript__clear" onClick={() => setTranscript([])}>
-                  Clear
-                </button>
-              </>
+            {history.length > 0 && (
+              <button className="transcript__clear" onClick={clearHistory}>Clear history</button>
             )}
           </div>
-        </div>
-        <div className="transcript__log">
-          {transcript.length === 0 && (
-            <div className="transcript__empty-state">
-              <p className="transcript__empty-title">Ready to bridge a conversation</p>
-              <ul>
-                <li>✓ Capture speech live, as text</li>
-                <li>✓ Recognize hand gestures, spoken aloud</li>
-                <li>✓ Log both sides in one shared transcript</li>
-              </ul>
-            </div>
-          )}
-          {transcript.map((line) => (
-            <div
-              key={line.id}
-              className={`bubble-row bubble-row--${line.source}`}
-            >
-              <span className={`bubble-icon bubble-icon--${line.source}`}>
-                {line.source === 'voice' ? <MicIcon /> : <HandIcon />}
-              </span>
-              <div className={`bubble bubble--${line.source}`}>
-                <div className="bubble__meta">
-                  {line.time?.toLocaleTimeString([], { hour12: false })}
-                  {line.confidence != null && ` · ${line.confidence}%`}
+          {history.length > 0 ? (
+            <div className="history-list">
+              {history.map((h) => (
+                <div className="history-item" key={h.id}>
+                  <span className="history-item__date">{h.date}</span>
+                  <span className="history-item__stats">
+                    {h.wordCount} words · {h.signCount} signs · {formatDuration(h.durationSeconds)}
+                  </span>
                 </div>
-                <div className="bubble__text">{line.text}</div>
-              </div>
+              ))}
             </div>
-          ))}
-          <div ref={logEndRef} />
+          ) : (
+            <p className="status-note">
+              No saved sessions yet — click "Save session" near the transcript to save one.
+            </p>
+          )}
         </div>
-      </div>
+
+        <div className="transcript" id="transcript">
+          <div className="transcript__header">
+            <div className="transcript__label">shared transcript</div>
+            <div className="transcript__actions">
+              {transcript.length > 0 && (
+                <>
+                  <button className="transcript__clear" onClick={copyTranscript}>
+                    Copy
+                  </button>
+                  <button className="transcript__clear" onClick={downloadTranscript}>
+                    Export .txt
+                  </button>
+                  <button className="transcript__clear" onClick={downloadTranscriptJSON}>
+                    Export .json
+                  </button>
+                  <button className="transcript__clear" onClick={saveSession}>
+                    Save session
+                  </button>
+                  <button className="transcript__clear" onClick={() => setTranscript([])}>
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="transcript__log">
+            {transcript.length === 0 && (
+              <div className="transcript__empty-state">
+                <p className="transcript__empty-title">Ready to bridge a conversation</p>
+                <ul>
+                  <li>✓ Capture speech live, as text</li>
+                  <li>✓ Recognize hand gestures, spoken aloud</li>
+                  <li>✓ Log both sides in one shared transcript</li>
+                </ul>
+              </div>
+            )}
+            {transcript.map((line) => (
+              <div
+                key={line.id}
+                className={`bubble-row bubble-row--${line.source}`}
+              >
+                <span className={`bubble-icon bubble-icon--${line.source}`}>
+                  {line.source === 'voice' ? <MicIcon /> : <HandIcon />}
+                </span>
+                <div className={`bubble bubble--${line.source}`}>
+                  <div className="bubble__meta">
+                    {line.time?.toLocaleTimeString([], { hour12: false })}
+                    {line.confidence != null && ` · ${line.confidence}%`}
+                  </div>
+                  <div className="bubble__text">{line.text}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={logEndRef} />
+          </div>
+        </div>
       </main>
     </div>
   )
